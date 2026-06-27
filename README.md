@@ -1,211 +1,110 @@
-<h1 align="center">
-    <a href="https://github.com/pixel-agents-hq/pixel-agents/discussions">
-        <img src="webview-ui/public/banner.png" alt="Pixel Agents">
-    </a>
-</h1>
+# 🏗️ Pixel Agents — 공사현장 에디션 + OpenRouter 멀티에이전트 Driver
 
-<h2 align="center" style="padding-bottom: 20px;">
-  The game interface where AI agents build real things
-</h2>
+[Pixel Agents](https://github.com/pixel-agents-hq/pixel-agents)(AI 에이전트가 픽셀 사무실 캐릭터로 살아 움직이는 VS Code 확장 / 독립 실행 앱)를
+**공사현장 테마**로 개조하고, **OpenRouter 기반 멀티에이전트 Driver**를 붙인 실습 프로젝트입니다.
 
-<div align="center" style="margin-top: 25px;">
+에이전트들은 사무실에서 타이핑하는 대신 **공사현장에서 삽을 들고 땅을 파는 인부**로 등장하고,
+각자 맡은 업무(번역 · 작업 검수 · UI 디자인 · 문서 작성 · 데이터 분석 · 코드 리뷰)를 **말풍선**으로 보여줍니다.
 
-[![version](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fpablodelucca%2F3cd28398fa4a2c0a636e1d51d41aee39%2Fraw%2Fversion.json)](https://github.com/pixel-agents-hq/pixel-agents/releases)
-[![marketplaces](https://img.shields.io/endpoint?url=https%3A%2F%2Fgist.githubusercontent.com%2Fpablodelucca%2F3cd28398fa4a2c0a636e1d51d41aee39%2Fraw%2Finstalls.json)](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents)
-[![stars](https://img.shields.io/github/stars/pixel-agents-hq/pixel-agents?logo=github&color=0183ff&style=flat)](https://github.com/pixel-agents-hq/pixel-agents/stargazers)
-[![license](https://img.shields.io/github/license/pixel-agents-hq/pixel-agents?color=0183ff&style=flat)](https://github.com/pixel-agents-hq/pixel-agents/blob/main/LICENSE)
-[![good first issues](https://img.shields.io/github/issues/pixel-agents-hq/pixel-agents/good%20first%20issue?color=7057ff&label=good%20first%20issues)](https://github.com/pixel-agents-hq/pixel-agents/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+---
 
-</div>
+## ✨ 무엇을 만들었나
 
-<div align="center">
-<a href="https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents">🛒 VS Code Marketplace</a> • <a href="https://github.com/pixel-agents-hq/pixel-agents/discussions">💬 Discussions</a> • <a href="https://github.com/pixel-agents-hq/pixel-agents/issues">🐛 Issues</a> • <a href="CONTRIBUTING.md">🤝 Contributing</a> • <a href="CHANGELOG.md">📋 Changelog</a>
-</div>
+### 1) 공사현장 비주얼 개조 (`webview-ui/`, `core/`)
+- **흙바닥**: 균일한 흙 텍스처 타일(`floors/floor_9.png`) + 낮은 대비 색조
+- **공사 구조물 픽셀아트**: 건물 골조(`FRAME`), 타워크레인(`CRANE`), 목재 더미(`LUMBER`),
+  안전콘(`CONE`), 바리케이드(`BARRICADE`), 흙더미(`DIRT_PILE`), 삽질 지점(`DIG_SPOT`)
+- **삽질 애니메이션**: 캐릭터 스프라이트(`characters/char_0~5.png`)의 작업 프레임을
+  "삽을 들고 땅을 파는" 2프레임 모션으로 리페인트, 앉지 않고 서서 작업(`CHARACTER_SITTING_OFFSET_PX = 0`)
+- **공사현장 레이아웃**: `default-layout-2.json`
+- **업무 말풍선**: `WorkTask` 도구로 전달된 한국어 업무명을 작업 중 캐릭터 머리 위에 상시 표시
+  (`ToolOverlay.tsx`, 서버 `formatToolStatus`의 `WorkTask` 케이스)
 
-<br/>
+### 2) OpenRouter 멀티에이전트 Driver (`driver/`)
+실제 Claude Code 없이도, OpenRouter LLM이 매 턴 "다음 행동"을 정하고
+그 결과를 **Hook**으로 Pixel Agents 서버에 보내 캐릭터를 움직이는 독립 PoC 패키지입니다.
 
-Pixel Agents turns multi-agent AI systems into something you can actually see and manage. Each agent becomes a character in a pixel art office. They walk around, sit at their desk, and visually reflect what they are doing — typing when writing code, reading when searching files, waiting when it needs your attention.
-
-It ships in **two flavors from the same source tree**:
-
-- **VS Code extension** — `pablodelucca.pixel-agents` on the [VS Code Marketplace](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents) and [Open VSX](https://open-vsx.org/extension/pablodelucca/pixel-agents). Agents spawn into VS Code terminals; characters render in the panel area.
-- **Standalone CLI** — `npx pixel-agents` runs a local Fastify server and serves the office as a browser SPA. Useful in tmux workflows, remote sessions, or any environment without a desktop VS Code.
-
-Internally, the architecture is fully agent-agnostic and platform-agnostic: a typed `HookProvider` interface defines the integration boundary so adding a new AI tool is a single subdirectory of code. Claude Code is the reference implementation today; Codex, Gemini, Cursor, and others are on the roadmap.
-
-![Pixel Agents screenshot](webview-ui/public/Screenshot.jpg)
-
-## Features
-
-- **One agent, one character** — every Claude Code terminal gets its own animated character
-- **Live activity tracking** — characters animate based on what the agent is actually doing (writing, reading, running commands)
-- **Office layout editor** — design your office with floors, walls, and furniture using a built-in editor
-- **Speech bubbles** — visual indicators when an agent is waiting for input or needs permission
-- **Sound notifications** — optional chime when an agent finishes its turn
-- **Sub-agent visualization** — Task tool sub-agents spawn as separate characters linked to their parent
-- **Persistent layouts** — your office design is saved and shared across VS Code windows
-- **External asset directories** — load custom or third-party furniture packs from any folder on your machine
-- **Diverse characters** — 6 diverse characters. These are based on the amazing work of [JIK-A-4, Metro City](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack).
-
-<p align="center">
-  <img src="webview-ui/public/characters.png" alt="Pixel Agents characters" width="320" height="72" style="image-rendering: pixelated;">
-</p>
-
-## Requirements
-
-- VS Code 1.105.0 or later
-- [Claude Code CLI](https://docs.anthropic.com/en/docs/claude-code) installed and configured
-- **Platform**: Windows, Linux, and macOS are supported
-
-## Getting Started
-
-If you just want to use Pixel Agents, the easiest way is to download the [VS Code extension](https://marketplace.visualstudio.com/items?itemName=pablodelucca.pixel-agents). If you want to play with the code, develop, or contribute, then:
-
-### Install from source
-
-```bash
-git clone https://github.com/pixel-agents-hq/pixel-agents.git
-cd pixel-agents
-npm install      # npm workspaces installs root + server + webview-ui in one shot
-npm run build
+```
+loop → planner(OpenRouter 호출) → validator → executor(Hook 전송) → 반복
 ```
 
-Then press **F5** in VS Code to launch the Extension Development Host.
+- 여러 에이전트(`AGENT_1_*`, `AGENT_2_*`, …)를 `.env`로 정의해 동시 구동
+- 서버의 `POST /api/hooks/claude`로 `SessionStart / PreToolUse / PostToolUse / Stop` 전송
+- API 호출 실패(429/5xx)는 지수 백오프 재시도, 한 턴 실패는 건너뛰고 계속
 
-To try the **standalone CLI** locally:
+---
 
-```bash
-node dist/cli.js                 # or npx pixel-agents [--port 3100] after publish
+## 🚀 실행 방법
+
+### 0) 사전 준비
+- Node.js (`.nvmrc` 참고)
+- [OpenRouter](https://openrouter.ai) API 키
+
+### 1) 의존성 설치 & 빌드 (저장소 루트)
+```powershell
+npm install
+node esbuild.js --production   # dist/cli.js, dist/assets, dist/hooks
+npm run build:webview          # dist/webview (브라우저 화면)
 ```
 
-It starts the Fastify server, opens the webview SPA at `http://localhost:3100`, and (in the same `~/.pixel-agents/` namespace) shares your hooks and layout with the VS Code extension if both are running.
+### 2) 공사현장 서버 실행
+```powershell
+node dist/cli.js --port 3100
+```
+브라우저에서 **http://localhost:3100** 을 열면 빈 공사현장(흙바닥 · 골조 · 크레인 · 소품)이 보입니다.
 
-### Browser Preview & Hosted Reports
+### 3) Driver 실행 (인부 투입)
+```powershell
+cd driver
+npm install
+Copy-Item .env.example .env    # 그리고 .env에 OPENROUTER_API_KEY 입력
+npm start
+```
+김대리 · 박주임이 등장 → 삽질 지점으로 걸어가 → 업무 말풍선을 띄우며 땅을 팝니다.
 
-The browser-preview version of the webview can be built and staged for Vercel separately from the VS Code extension build.
+> ⚠️ `driver/.env`의 `PIXEL_AGENTS_WORKSPACE`는 **서버를 실행한 폴더와 일치**해야
+> 캐릭터가 화면에 잡힙니다. 기본값은 driver를 실행한 폴더입니다.
 
-```bash
-npm run test
-npm run e2e
-npm run e2e -- --attach-videos-on-success
-npm run vercel:prepare
+---
+
+## ⚙️ driver/.env 주요 설정
+
+| 변수 | 설명 |
+|------|------|
+| `OPENROUTER_API_KEY` | OpenRouter API 키 (필수) |
+| `LLM_MODEL` / `AGENT_<n>_MODEL` | 사용할 모델 ID (예: `openai/gpt-4o-mini`) |
+| `AGENT_<n>_NAME` / `_SYSTEM_PROMPT` / `_API_KEY` | 에이전트별 이름·성격·키(선택) |
+| `PIXEL_AGENTS_WORKSPACE` | 서버가 스캔하는 작업공간(서버 실행 폴더와 일치) |
+
+> 🔐 `.env`는 `.gitignore`에 포함되어 깃에 올라가지 않습니다. 키를 코드에 직접 넣지 마세요.
+
+---
+
+## 📁 주요 구조
+
+```
+driver/                         OpenRouter 멀티에이전트 Driver (독립 패키지)
+  index.ts                      진입점(데모 루프)
+  planner.ts / openrouter.ts    LLM 호출로 다음 행동 결정
+  validator.ts                  행동 JSON 검증(실패 시 rest 폴백)
+  executor.ts / actions.ts      업무 실행 + Hook(PreToolUse 등) 전송
+  office.ts / transcript.ts     서버 Hook 전송 / 트랜스크립트 기록
+
+webview-ui/public/assets/
+  characters/char_0~5.png       삽질 모션으로 리페인트된 캐릭터
+  floors/floor_9.png            흙바닥 타일
+  furniture/{FRAME,CRANE,...}   공사 구조물·소품
+  default-layout-2.json         공사현장 레이아웃
+webview-ui/src/office/components/ToolOverlay.tsx   업무 말풍선
+server/src/providers/hook/claude/claude.ts         WorkTask 라벨 처리
 ```
 
-Run `npm run test:report` separately when you want the combined Allure report locally without preparing the full Vercel output.
+자세한 원본 아키텍처는 [`CLAUDE.md`](CLAUDE.md)를 참고하세요.
 
-The staged Vercel output serves the standalone webview at `/webview/` and the Linux Allure report at `/reports/allure/`, combining the `e2e`, `server`, and `webview` suites. The GitHub Actions deploy job expects `VERCEL_TOKEN`, `VERCEL_ORG_ID`, and `VERCEL_PROJECT_ID` secrets.
+---
 
-### Usage
+## 🙏 크레딧 & 라이선스
 
-1. Open the **Pixel Agents** panel (it appears in the bottom panel area alongside your terminal)
-2. Click **+ Agent** to spawn a new Claude Code terminal and its character. Right-click for the option to launch with `--dangerously-skip-permissions` (bypasses all tool approval prompts)
-3. Start coding with Claude — watch the character react in real time
-4. Click a character to select it, then click a seat to reassign it
-5. Click **Layout** to open the office editor and customize your space
-
-## Layout Editor
-
-The built-in editor lets you design your office:
-
-- **Floor** — Full HSB color control
-- **Walls** — Auto-tiling walls with color customization
-- **Tools** — Select, paint, erase, place, eyedropper, pick
-- **Undo/Redo** — 50 levels with Ctrl+Z / Ctrl+Y
-- **Export/Import** — Share layouts as JSON files via the Settings modal
-
-The grid is expandable up to 64×64 tiles. Click the ghost border outside the current grid to grow it.
-
-### Office Assets
-
-All office assets (furniture, floors, walls) are now **fully open-source** and included in this repository under `webview-ui/public/assets/`. No external purchases or imports are needed — everything works out of the box.
-
-Each furniture item lives in its own folder under `assets/furniture/` with a `manifest.json` that declares its sprites, rotation groups, state groups (on/off), and animation frames. Floor tiles are individual PNGs in `assets/floors/`, and wall tile sets are in `assets/walls/`. This modular structure makes it easy to add, remove, or modify assets without touching any code.
-
-To add a new furniture item, create a folder in `webview-ui/public/assets/furniture/` with your PNG sprite(s) and a `manifest.json`, then rebuild. The asset manager (`scripts/asset-manager.html`) provides a visual editor for creating and editing manifests.
-
-To use furniture from an external directory, open Settings → **Add Asset Directory**. See [docs/external-assets.md](docs/external-assets.md) for the full manifest format and how to use third-party asset packs.
-
-Characters are based on the amazing work of [JIK-A-4, Metro City](https://jik-a-4.itch.io/metrocity-free-topdown-character-pack).
-
-## How It Works
-
-Pixel Agents has two parallel detection paths:
-
-- **Hooks mode** (preferred) — Claude Code's official Hooks API POSTs events (`SessionStart`, `PreToolUse`, `Notification`, `Stop`, etc.) to a local Fastify server (`POST /api/hooks/:providerId`). Instant, reliable. Server discovery via `~/.pixel-agents/server.json`.
-- **Heuristic mode** (fallback) — Polls JSONL transcript files at `~/.claude/projects/<project-hash>/<session-id>.jsonl`. Used when hooks aren't installed.
-
-A single `HookProvider.normalizeHookEvent(raw)` translates each CLI's hook payload into a canonical `AgentEvent`. The shared `AgentRuntime` dispatches on `AgentEvent.kind`, mutates `AgentStateStore`, and the broadcast layer translates state events into typed `ServerMessage` over the active transport.
-
-The webview runs a lightweight game loop with canvas rendering, BFS pathfinding, and a character state machine (idle → walk → type/read). Everything is pixel-perfect at integer zoom levels. Game state lives in an imperative `OfficeState` class outside React; React components read from it during render but don't own the state.
-
-No modifications to Claude Code are needed — Pixel Agents is purely observational.
-
-## Tech Stack
-
-Four-package monorepo, npm workspaces:
-
-- **`core/`** — TypeScript-only protocol + interfaces (AsyncAPI 3.0 contract, `HookProvider`, `MessageTransport`, `StateAdapter`). Zero runtime side effects.
-- **`server/`** — Fastify v5 (HTTP + WebSocket), Vitest. Owns `AgentRuntime`, `AgentStateStore`, `SessionRouter`, `DismissalTracker`, file watching, transcript parsing, providers. Ships the `npx pixel-agents` CLI.
-- **`adapters/vscode/`** — VS Code Extension API. Composes `core/` + `server/` for the desktop surface.
-- **`webview-ui/`** — React 19, Vite, Canvas 2D. Transport-agnostic (`PostMessageTransport` in VS Code, `WebSocketTransport` in the browser).
-
-Builds: esbuild (extension + CLI + hook scripts), Vite (webview SPA). Tests: Vitest (server + webview unit), Playwright (e2e against real VS Code + standalone Fastify).
-
-## Known Limitations
-
-- **Agent-terminal sync** — the way agents are connected to Claude Code terminal instances is not super robust and sometimes desyncs, especially when terminals are rapidly opened/closed or restored across sessions.
-- **Heuristic-based status detection** — Claude Code's JSONL transcript format does not provide clear signals for when an agent is waiting for user input or when it has finished its turn. The current detection is based on heuristics (idle timers, turn-duration events) and often misfires — agents may briefly show the wrong status or miss transitions.
-- **Linux/macOS tip** — if you launch VS Code without a folder open (e.g. bare `code` command), agents will start in your home directory. This is fully supported; just be aware your Claude sessions will be tracked under `~/.claude/projects/` using your home directory as the project root.
-
-## Troubleshooting
-
-If your agent appears stuck on idle or doesn't spawn:
-
-1. **Debug View** — In the Pixel Agents panel, click the gear icon (Settings), then toggle **Debug View**. This shows connection diagnostics per agent: JSONL file status, lines parsed, last data timestamp, and file path. If you see "JSONL not found", the extension can't locate the session file.
-2. **Debug Console** — If you're running from source (Extension Development Host via F5), open VS Code's **View > Debug Console**. Search for `[Pixel Agents]` to see detailed logs: project directory resolution, JSONL polling status, path encoding mismatches, and unrecognized JSONL record types.
-
-## Where This Is Going
-
-The long-term vision is an interface where managing AI agents feels like playing the Sims, but the results are real things built.
-
-- **Agents as characters** you can see, assign, monitor, and redirect, each with visible roles (designer, coder, writer, reviewer), stats, context usage, and tools.
-- **Desks as directories** — drag an agent to a desk to assign it to a project or working directory.
-- **An office as a project** — with a Kanban board on the wall where idle agents can pick up tasks autonomously.
-- **Deep inspection** — click any agent to see its model, branch, system prompt, and full work history. Interrupt it, chat with it, or redirect it.
-- **Token health bars** — rate limits and context windows visualized as in-game stats.
-- **Fully customizable** — upload your own character sprites, themes, and office assets. Eventually maybe even move beyond pixel art into 3D or VR.
-
-For this to work, the architecture needs to be modular at every level:
-
-- **Platform-agnostic**: VS Code extension today, Electron app, web app, or any other host environment tomorrow.
-- **Agent-agnostic**: Claude Code today, but built to support Codex, OpenCode, Gemini, Cursor, Copilot, and others through composable adapters.
-- **Theme-agnostic**: community-created assets, skins, and themes from any contributor.
-
-We're actively working on the core module and adapter architecture that makes this possible. If you're interested to talk about this further, please visit our [Discussions Section](https://github.com/pixel-agents-hq/pixel-agents/discussions).
-
-## Community & Contributing
-
-Use **[Issues](https://github.com/pixel-agents-hq/pixel-agents/issues)** to report bugs or request features. Join **[Discussions](https://github.com/pixel-agents-hq/pixel-agents/discussions)** for questions and conversations.
-
-See [CONTRIBUTING.md](CONTRIBUTING.md) for instructions on how to contribute.
-
-Please read our [Code of Conduct](CODE_OF_CONDUCT.md) before participating.
-
-## Supporting the Project
-
-If you find Pixel Agents useful, consider supporting its development:
-
-<a href="https://github.com/sponsors/pablodelucca">
-  <img src="https://img.shields.io/badge/Sponsor-GitHub-ea4aaa?logo=github" alt="GitHub Sponsors">
-</a>
-<a href="https://ko-fi.com/pablodelucca">
-  <img src="https://img.shields.io/badge/Support-Ko--fi-ff5e5b?logo=ko-fi" alt="Ko-fi">
-</a>
-
-## Star History
-
-[![Star History Chart](https://api.star-history.com/svg?repos=pixel-agents-hq/pixel-agents&type=Date)](https://www.star-history.com/?repos=pixel-agents-hq%2Fpixel-agents&type=date&legend=bottom-right)
-
-## License
-
-This project is licensed under the [MIT License](LICENSE).
+이 프로젝트는 [**pixel-agents-hq/pixel-agents**](https://github.com/pixel-agents-hq/pixel-agents)(MIT License)를
+기반으로 개조한 것입니다. 원본 저작권 및 라이선스는 [`LICENSE`](LICENSE)에 그대로 유지됩니다.
+공사현장 테마·삽질 모션·OpenRouter Driver·업무 말풍선 부분이 추가/변경된 내용입니다.
