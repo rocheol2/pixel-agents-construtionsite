@@ -1,0 +1,17 @@
+{
+  "name": "pixel-agents-driver",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "OpenRouter 기반 Multi-Agent Driver. server/core/webview-ui와 독립된 PoC 패키지.",
+  "scripts": {
+    "start": "tsx index.ts",
+    "dev": "tsx watch index.ts",
+    "typecheck": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "tsx": "^4.21.0",
+    "typescript": "^5.9.3"
+  }
+}

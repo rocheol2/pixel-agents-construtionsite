@@ -36,7 +36,7 @@ export const MATRIX_TRAIL_MID_THRESHOLD = 0.33;
 export const MATRIX_TRAIL_DIM_THRESHOLD = 0.66;
 
 // ── Rendering ────────────────────────────────────────────────
-export const CHARACTER_SITTING_OFFSET_PX = 6;
+export const CHARACTER_SITTING_OFFSET_PX = 0; // 공사현장: 앉지 않고 서서 삽질
 export const CHARACTER_Z_SORT_OFFSET = 0.5;
 export const OUTLINE_Z_SORT_OFFSET = 0.001;
 export const SELECTED_OUTLINE_ALPHA = 1.0;

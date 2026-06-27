@@ -130,8 +130,11 @@ export function ToolOverlay({
         const isHovered = hoveredId === id;
         const isSub = ch.isSubagent;
 
-        // Only show for hovered or selected agents (unless always-show is on)
-        if (!alwaysShowOverlay && !isSelected && !isHovered) return null;
+        // 작업 중인 에이전트는 hover/select가 아니어도 말풍선을 항상 표시한다.
+        const overlayTools = agentTools[id];
+        const isWorking = ch.isActive && !!overlayTools?.some((t) => !t.done);
+        // Only show for hovered/selected/working agents (unless always-show is on)
+        if (!alwaysShowOverlay && !isSelected && !isHovered && !isWorking) return null;
 
         // Position above character
         const sittingOffset = ch.state === CharacterState.TYPE ? CHARACTER_SITTING_OFFSET_PX : 0;
@@ -180,6 +183,19 @@ export function ToolOverlay({
             ch.isActive,
             ch.bubbleType,
             ch.waitingAwaitingInput ?? false,
+          );
+        }
+
+        // 작업 중이 아니어서 'Idle'이면(hover/select가 아닌 한) 말풍선을 띄우지 않는다.
+        if (activityText === 'Idle' && !isSelected && !isHovered) {
+          return (
+            <div
+              key={id}
+              className="absolute"
+              style={{ left: screenX, top: screenY, pointerEvents: 'none' }}
+              data-testid="agent-overlay"
+              data-agent-id={id}
+            />
           );
         }
 
@@ -268,6 +284,17 @@ export function ToolOverlay({
                 </Button>
               )}
             </div>
+            {/* 말풍선 꼬리 */}
+            <div
+              style={{
+                width: 0,
+                height: 0,
+                borderLeft: '5px solid transparent',
+                borderRight: '5px solid transparent',
+                borderTop: '6px solid var(--pixel-border)',
+                marginTop: -1,
+              }}
+            />
             {isTeamAgent && totalTokens > 0 && (
               <div
                 style={{

@@ -61,6 +61,9 @@ export function formatToolStatus(toolName: string, input?: unknown): string {
       const recipient = typeof inp.recipient === 'string' ? inp.recipient : '';
       return recipient ? `-> ${recipient}` : 'Sending message';
     }
+    case 'WorkTask':
+      // 사용자 정의 업무 도구: tool_input.label을 말풍선 텍스트로 그대로 사용한다.
+      return typeof inp.label === 'string' && inp.label ? inp.label : 'Working';
     default:
       return `Using ${toolName}`;
   }
